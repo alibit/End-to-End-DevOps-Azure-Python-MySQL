@@ -1,1 +1,1 @@
-# End-to-End-DevOps-Azure-Python-MySQL-
+# End-to-End-DevOps-Azure-Python-MySQL
