@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-db-tables
+spec:
+  template:
+    spec:
+      containers:
+      - name: db-init
+        image: cluster1devacr.azurecr.io/todo-db-img:latest # Replace with your Docker image
+        env:
+          - name: AZURE_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: azure-client-id
+                key: client-id
+          - name: AZURE_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: azure-client-secret
+                key: client-secret
+          - name: AZURE_TENANT_ID
+            valueFrom:
+              secretKeyRef:
+                name: azure-tenant-id
+                key: tenant-id    
+          - name: RESOURCE_GROUP
+            valueFrom:
+              secretKeyRef:
+                name: resource-group
+                key: rg-name                                
+          - name: DB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: sql-endpoint
+                key: endpoint
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: db-username
+                key: username
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: db-password
+                key: password
+          - name: DB_DATABASE
+            value: todo_db
+      restartPolicy: Never
+  backoffLimit: 4
