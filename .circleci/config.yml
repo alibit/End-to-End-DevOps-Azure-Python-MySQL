@@ -93,6 +93,6 @@ workflows:
   ci_cd_workflow:
     jobs:
       - build-and-push
-      - deploy:
-          requires:
-            - build-and-push
+      # - deploy:
+      #     requires:
+      #       - build-and-push
