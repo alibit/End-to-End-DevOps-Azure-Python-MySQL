@@ -16,7 +16,7 @@ RUN apt-get clean
 COPY . .
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN pip install --upgrade pip
+RUN /bin/sh -c pip install --upgrade pip
 
 RUN pip install --no-cache-dir -r requirements.txt
 
