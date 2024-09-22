@@ -1,5 +1,6 @@
-Flask==2.0.1
-Werkzeug==2.0.1
-pyodbc
-sqlalchemy
-cryptography
+Flask==2.0.3
+Werkzeug==2.0.3
+SQLAlchemy==1.4.27
+pyodbc==4.0.32
+gunicorn==20.1.0
+jinja2==3.0.3

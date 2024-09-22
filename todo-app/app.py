@@ -1,41 +1,20 @@
 from flask import Flask, render_template, request, redirect, url_for
-from sqlalchemy import create_engine
-import pyodbc
+from sqlalchemy import create_engine, text
 import os
-
 
 app = Flask(__name__)
 
-# Database connection info with environment variables
-# db_connection = pymysql.connect(
-#     host=os.environ.get('DB_HOST', 'localhost'),
-#     user=os.environ.get('DB_USER', 'root'),
-#     password=os.environ.get('DB_PASSWORD', 'password'),
-#     database=os.environ.get('DB_DATABASE', 'todo_db'),
-#     port=int(os.getenv('DB_PORT', 3306)),
-#     ssl={'ssl': {'check_hostname': False, 'verify_mode': False}},
-#     cursorclass=pymysql.cursors.DictCursor
-# )
-
-# db_connection = pyodbc.connect(
-#     'DRIVER={ODBC Driver 17 for SQL Server};'
-#     'SERVER=' + os.environ.get('DB_HOST', 'localhost') + ';'
-#     'UID=' + os.environ.get('DB_USER', 'root') + ';'
-#     'PWD=' + os.environ.get('DB_PASSWORD', 'password') + ';'
-#     'DATABASE=' + os.environ.get('DB_DATABASE', 'todo_db') + ';'
-#     'Authentication=ActiveDirectoryMSI;'
-#     'Encrypt=yes;'
-#     'TrustServerCertificate=yes;'
-#     'Connection Timeout=30;'
-# )
-
-DB_HOST = os.environ.get('DB_HOST')  # Private IP of Azure SQL Server
+# Database credentials from environment variables
+# Private IP of Azure SQL Server or server name
+DB_HOST = os.environ.get('DB_HOST')
 DB_USER = os.environ.get('DB_USER')
 DB_PASSWORD = os.environ.get('DB_PASSWORD')
 DB_DATABASE = os.environ.get('DB_DATABASE')
 
-connection_string = f'mssql+pyodbc://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_DATABASE}'
+# Specify the driver and update the connection string
+connection_string = f'mssql+pyodbc://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_DATABASE}?driver=ODBC+Driver+17+for+SQL+Server'
 
+# Create the engine
 db_connection = create_engine(connection_string, pool_recycle=1433)
 
 # Pages Routes
@@ -43,9 +22,13 @@ db_connection = create_engine(connection_string, pool_recycle=1433)
 
 @app.route('/')
 def index():
-    cursor = db_connection.cursor()
-    cursor.execute("SELECT * FROM tasks")
-    tasks = cursor.fetchall()
+    try:
+        with db_connection.connect() as conn:
+            result = conn.execute(text("SELECT * FROM tasks"))
+            tasks = result.fetchall()
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        tasks = []
     return render_template('index.html', tasks=tasks)
 
 
@@ -60,26 +43,22 @@ def add_task():
 @app.route('/delete/<int:task_id>', methods=['POST'])
 def delete_task(task_id):
     try:
-        with db_connection.cursor() as cursor:
-            sql = "DELETE FROM tasks WHERE id = %s"
-            cursor.execute(sql, (task_id,))
-            db_connection.commit()
+        with db_connection.connect() as conn:
+            conn.execute(text("DELETE FROM tasks WHERE id = :id"),
+                         {"id": task_id})
     except Exception as e:
         print(f"An error occurred: {e}")
-        db_connection.rollback()
     return redirect(url_for('index'))
 
 
 @app.route('/complete/<int:task_id>', methods=['POST'])
 def complete_task(task_id):
     try:
-        with db_connection.cursor() as cursor:
-            sql = "UPDATE tasks SET is_complete = TRUE WHERE id = %s"
-            cursor.execute(sql, (task_id,))
-            db_connection.commit()
+        with db_connection.connect() as conn:
+            conn.execute(text("UPDATE tasks SET is_complete = TRUE WHERE id = :id"), {
+                         "id": task_id})
     except Exception as e:
         print(f"An error occurred: {e}")
-        db_connection.rollback()
     return redirect(url_for('index'))
 
 # Send data to the database
@@ -87,15 +66,11 @@ def complete_task(task_id):
 
 def add_task_to_database(title, description):
     try:
-        with db_connection.cursor() as cursor:
-            # Create a new record
-            sql = "INSERT INTO tasks (title, description) VALUES (%s, %s)"
-            cursor.execute(sql, (title, description))
-
-        db_connection.commit()
+        with db_connection.connect() as conn:
+            conn.execute(text("INSERT INTO tasks (title, description) VALUES (:title, :description)"),
+                         {"title": title, "description": description})
     except Exception as e:
         print(f"An error occurred: {e}")
-        db_connection.rollback()
 
 
 if __name__ == '__main__':
