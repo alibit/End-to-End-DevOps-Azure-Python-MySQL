@@ -15,9 +15,8 @@ RUN apt-get clean
 
 COPY . .
 
-RUN pip install --upgrade pip
-
-RUN pip install -r requirements.txt
+RUN python -m pip install --upgrade pip && \
+  python -m pip install -r requirements.txt
 
 EXPOSE 5000
 
