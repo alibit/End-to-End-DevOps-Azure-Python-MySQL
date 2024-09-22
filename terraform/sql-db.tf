@@ -34,21 +34,6 @@ resource "azurerm_mssql_database" "sql_database" {
   }
 }
 
-# SQL Firewall Rule - Allow Azure Services to access the SQL server
-resource "azurerm_mssql_firewall_rule" "allow_azure_services" {
-  name                = "AllowAzureServices"
-  server_id           = azurerm_mssql_server.sql_server.id
-  start_ip_address    = "10.0.1.0"
-  end_ip_address      = "10.0.1.255"
-}
-
-# SQL Firewall Rule - Allow access from All IP address or range
-resource "azurerm_mssql_firewall_rule" "allow_all" {
-  name                = "AllowAllIPs"
-  server_id           = azurerm_mssql_server.sql_server.id
-  start_ip_address    = "10.0.2.0"  # Replace with your IP or CIDR block
-  end_ip_address      = "10.0.2.255"    # Replace with your IP or CIDR block
-}
 
 # Private Link for SQL Server (optional, for private access)
 resource "azurerm_private_endpoint" "sql_private_endpoint" {

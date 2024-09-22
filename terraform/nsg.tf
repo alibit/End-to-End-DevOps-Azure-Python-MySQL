@@ -31,8 +31,8 @@ resource "azurerm_network_security_rule" "allow_sql_server_traffic" {
   protocol                    = "Tcp"
   source_port_range           = "*"
   destination_port_ranges     = ["1433"]
-  source_address_prefix       = "10.0.2.0/24"
-  destination_address_prefix  = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "10.0.2.0/24"
   resource_group_name = azurerm_resource_group.aks.name
   network_security_group_name = azurerm_network_security_group.nsg.name
 }
