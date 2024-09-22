@@ -15,7 +15,7 @@ RUN apt-get clean
 
 COPY . .
 
-RUN python -m pip install --upgrade pip==23.0.1 && \
+RUN python -m pip install --upgrade pip==24.2 && \
   python -m pip install --no-cache-dir -r requirements.txt
 
 
