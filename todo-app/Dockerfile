@@ -16,9 +16,9 @@ RUN apt-get clean
 COPY . .
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN pip3 install --upgrade pip
+RUN pip install --upgrade pip
 
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 5000
 
