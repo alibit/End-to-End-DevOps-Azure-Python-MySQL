@@ -3,7 +3,7 @@ version: 2.1
 executors:
   docker-executor:
     docker:
-      - image: circleci/python:3.9 
+      - image: circleci/python:3.9
     working_directory: ~/repo
 
 jobs:
@@ -35,7 +35,7 @@ jobs:
             python -m pip install --upgrade pip
             pip install -r todo-app/requirements.txt
 
-      # Install Azure CLI
+      # Install Azure CLI (Consider caching or installing only if not already available)
       - run:
           name: Install Azure CLI
           command: |
