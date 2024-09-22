@@ -3,10 +3,11 @@ FROM python:3.9
 WORKDIR /usr/src/app
 
 RUN apt-get update && \
-  apt-get install -y curl apt-transport-https gnupg && \
+  apt-get install -y --no-install-recommends curl apt-transport-https gnupg && \
   curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
   curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | tee /etc/apt/sources.list.d/msprod.list && \
-  apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
+  apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev &&\
+  rm -rf /var/lib/apt/lists/*
 
 RUN apt-get clean
 

@@ -24,7 +24,8 @@ jobs:
             curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
             sudo apt-get update
             sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17  # Microsoft's ODBC driver for SQL Server
-
+            sudo rm -rf /var/lib/apt/lists/*
+            
       - setup_remote_docker:
           version: 20.10.7
           docker_layer_caching: true
