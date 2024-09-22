@@ -15,8 +15,9 @@ RUN apt-get clean
 
 COPY . .
 
-RUN python -m pip install --upgrade pip && \
-  python -m pip install -r requirements.txt
+RUN python -m pip install --upgrade pip==23.0.1 && \
+  python -m pip install --no-cache-dir -r requirements.txt
+
 
 EXPOSE 5000
 
