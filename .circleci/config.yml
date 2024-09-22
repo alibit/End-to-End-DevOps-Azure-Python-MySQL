@@ -3,20 +3,28 @@ version: 2.1
 executors:
   kubectl-executor:
     docker:
-      - image: circleci/node:16
+      - image: circleci/python:3.9 
     environment:
       KUBECONFIG: /home/circleci/.kube/config
 
 jobs:
   build-and-push:
     docker:
-      - image: circleci/node:16
+      - image: circleci/python:3.9 
     steps:
       - checkout
 
       - setup_remote_docker:
           version: 20.10.7
           docker_layer_caching: true
+
+
+      - run:
+          name: Install dependencies
+          command: |
+            python -m venv venv
+            . venv/bin/activate
+            pip install -r todo-app/requirements.txt
 
       # Install Azure CLI
       - run:
