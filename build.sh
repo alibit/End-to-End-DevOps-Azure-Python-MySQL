@@ -1,11 +1,11 @@
 subscription_id=$(cat subscription.txt)
 cluster_name="cluster-1-dev-aks" # Update this if the cluster name is changed in terraform
-Location="Germany West Central"
+Location="East US"
 resource_group="cluster-1-dev-rg"
+sql_servername="cluster-1-dev-sql-server"
 acr_name="cluster1devacr"
 service_principal_name="pyapp"
 app_image_name="$acr_name.azurecr.io/todo-app-img:latest"
-db_image_name="$acr_name.azurecr.io/todo-db-img:latest"
 service_name="todo-app-service"
 argo_service_name="argocd-server"
 alertmanager_service_name="kube-prometheus-stack-alertmanager"
@@ -14,7 +14,6 @@ prometheus_service_name="kube-prometheus-stack-prometheus"
 namespace="todo-app"
 argo_namespace="argocd"
 monitoring_namespace="monitoring"
-app_port="8080"
 alertmanager_port="9093"
 prometheus_port="9090"
 
@@ -46,13 +45,10 @@ az aks get-credentials --resource-group $resource_group --name $cluster_name || 
 # remove preious docker images
 echo "--------------------Remove Previous build--------------------"
 docker rmi -f $app_image_name || true
-docker rmi -f $db_image_name || true
 
 # build new docker image with new tag
 echo "--------------------Build new Image--------------------"
 docker build -t $app_image_name todo-app/
-docker build -f k8s/Dockerfile.mysql -t $db_image_name k8s
-
 
 # ACR Login
 echo "----------------------Logging into ACR----------------------"
@@ -61,7 +57,6 @@ az acr login --name $acr_name || { echo "ACR login failed"; exit 1; }
 # Push the latest build to ACR
 echo "--------------------Pushing Docker Image--------------------"
 docker push $app_image_name || { echo "Docker push failed"; exit 1; }
-docker push $db_image_name || { echo "Docker push failed"; exit 1; }
 
 # # create namespace
 echo "--------------------creating Namespace--------------------"
@@ -72,7 +67,7 @@ AKS_MANAGED_IDENTITY=$(az aks show --resource-group $resource_group --name $clus
 az role assignment create --assignee $AKS_MANAGED_IDENTITY --scope $(az acr show --name $acr_name --resource-group $resource_group --query id -o tsv) --role AcrPull
 
 # Secret for the SQL Server endpoint (DB_HOST)
-DB_HOST=$(cd terraform && terraform output -raw db_host)
+DB_HOST=$(az sql server show --name $sql_servername --resource-group $resource_group --query fullyQualifiedDomainName --output tsv)
 kubectl create secret -n $namespace generic sql-endpoint --from-literal=endpoint=$DB_HOST
 
 # Secret for the SQL Server username (DB_USER)
@@ -82,18 +77,6 @@ kubectl create secret -n $namespace generic db-username --from-literal=username=
 # Secret for the SQL Server password (DB_PASSWORD)
 DB_PASSWORD=$(cd terraform && terraform output -raw db_password)
 kubectl create secret -n $namespace generic db-password --from-literal=password=$DB_PASSWORD
-
-CLIENT_ID=$(cd terraform && terraform output -raw client_id)
-kubectl create secret -n $namespace generic azure-client-id --from-literal=client-id=$CLIENT_ID
-
-CLIENT_SECRET=$(cd terraform && terraform output -raw client_secret)
-kubectl create secret -n $namespace generic azure-client-secret --from-literal=client-secret=$CLIENT_SECRET
-
-TENANT_ID=$(cd terraform && terraform output -raw tenant_id)
-kubectl create secret -n $namespace generic azure-tenant-id --from-literal=tenant-id=$TENANT_ID
-
-RESOURCE_GROUP=$(cd terraform && terraform output -raw tenant_id)
-kubectl create secret -n $namespace generic resource-group --from-literal=rg-name=$RESOURCE_GROUP
 
 # Deploy the application
 echo "-----------------------Deploying App------------------------"
@@ -105,7 +88,7 @@ sleep 60s
 
 # Get LoadBalancer
 echo "----------------------Application URL-----------------------"
-echo "$(kubectl get svc $service_name -n $namespace -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || { echo "Failed to retrieve service IP"; exit 1; }):$app_port"
+echo "$(kubectl get svc $service_name -n $namespace -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || { echo "Failed to retrieve service IP"; exit 1; })"
 
 echo ""
 
