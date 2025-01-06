@@ -46,7 +46,7 @@ resource "random_shuffle" "availability_zones" {
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "primary_nodes" {
-  name                = "primarynp"
+  name                = "${replace(var.environment, "-", "")}primarynp"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
   vm_size             = "Standard_DS2_v2"
   node_count          = 3

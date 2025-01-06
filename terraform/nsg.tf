@@ -25,7 +25,7 @@ resource "azurerm_network_security_rule" "allow_http_inbound" {
 
 resource "azurerm_network_security_rule" "allow_sql_server_traffic" {
   name                        = "AllowSQLServerTraffic"
-  priority                    = 100   # Ensure this priority is different from other rules
+  priority                    = 100   
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
