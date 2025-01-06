@@ -31,7 +31,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/todo-app-img:latest .
+          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/todo-app-img:latest todo-app/
 
       - name: Push Docker image to ACR
         run: |
